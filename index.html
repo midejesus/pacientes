@@ -29,7 +29,7 @@
         txt = "";
         x = xmlDoc.getElementsByTagName("paciente");
         for (i = 0; i< x.length; i++) {
-            txt += x[i].childNodes[0].nodeValue + "<br>";
+            txt += x[i].nodeValue + "<br>";
         }
         document.getElementById("demo").innerHTML = txt;
     }
