@@ -11,35 +11,18 @@
     margin-top: 0px;
     margin-right: -15px;
 }
-.message-wrapper{
-    padding-top: 20%;
-}
-
- @media all and (min-width: 992px)
- {
-   .btn-top{
-       padding-top: 50%;
-   }
- }
-
-.btn-blue {
-    margin-top: 2em;
-    min-width: 12em;
-    height: 5em;
-    color: #fff;
-    background-color: #5bc0de;
-    border-color: #5bc0de;
-}
-
-
-.btn-blue:hover {
-  color: #fff;
-  background-color: #31b0d5;
-  border-color: #2aabd2;
-}
 
 .footer-center{
     margin-top: 5em;
    text-align: center;
 }
 
+.panel.with-nav-tabs .panel-heading{
+    padding: 5px 5px 0 5px;
+}
+.panel.with-nav-tabs .nav-tabs{
+	border-bottom: none;
+}
+.panel.with-nav-tabs .nav-justified{
+	margin-bottom: -1px;
+}
