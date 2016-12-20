@@ -13,8 +13,10 @@
         <script src="js/angular.min.js"></script>
         <script src="js/angular-route.min.js"></script>
         <script src="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.js"></script>
+        <script src="js/ui-bootstrap-tpls-2.3.1.min.js"></script>
         <script src="js/xml2json.min.js"></script>
         <script src="js/pacientesApp.js"></script>
+        <script type="text/ng-template" id="alert.html"><div ng-transclude></div></script>
     </head>
     <body>
         <div class="top-wrapper">
@@ -32,30 +34,30 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
-                    <h3>Bem-Vind@!</h3>
-                    <p class="text-justify">
+                    <div ng-controller="alertController">
+                        <div uib-alert style="border-color: #bcdff1;" ng-class="alertClass" close="closeAlert()" ng-cloak>
+                        <h3>Bem-Vind@!</h3>
                         Nesta versão da busca de pacientes, os dados são carregados diretamente pelo arquivo pacientes.xml e os resultados são mostrados por JavaScript com o framework AngularJS.
-                        <br/>
-                        <br/>
-                    </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container">
             <div class="row">
-                <div class="col-lg-12 col-md-12 col-sm-12">
-                    <div class="panel with-nav-tabs panel-info">
-                        <div class="panel-heading">
-                            <ul class="nav nav-tabs">
-                                <li class="active"><a href="/" data-toggle="tab">Visualizar Cadastrados </a></li>
-                                <li><a href="#busca/" data-toggle="tab">Realizar Busca</a></li>
-                            </ul>
-                        </div>
-                        <div class="panel-body">
-                            <div class="tab-content">
-                                <div ng-view></div>
-                            </div>
-                        </div>
+               <div ng-controller="tabController">
+                <div class="panel with-nav-tabs panel-info">
+                    <div class="panel-heading">
+                       <uib-tabset active="active">
+                        <uib-tab ng-repeat="tab in tabs" active="tab.active" select="changeHash(tab.href)" >
+                           <uib-tab-heading ng-cloak>
+                              <i class="{{tab.icon}}"></i> {{tab.title}}
+                            </uib-tab-heading>
+                        </uib-tab>
+                      </uib-tabset>
+                    </div>
+                    <div class="panel-body">
+                        <div ng-view></div>
                     </div>
                 </div>
             </div>
