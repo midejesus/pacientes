@@ -9,10 +9,12 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="css/pacientes.css">
-        <script src="js/angular.min.js"></script>
-        <script src="js/app.js"></script>
         <link rel="stylesheet"; href="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.css">
+        <script src="js/angular.min.js"></script>
+        <script src="js/angular-route.min.js"></script>
         <script src="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.js"></script>
+        <script src="js/xml2json.min.js"></script>
+        <script src="js/pacientesApp.js"></script>
     </head>
     <body>
         <div class="top-wrapper">
@@ -32,7 +34,7 @@
                 <div class="col-lg-12 col-md-12 col-sm-12">
                     <h3>Bem-Vind@!</h3>
                     <p class="text-justify">
-                        Nesta versão da busca de pacientes, os dados são carregados diretamente pelo arquivo pacientes.xml e os resultados são mostrados por JavaScript.
+                        Nesta versão da busca de pacientes, os dados são carregados diretamente pelo arquivo pacientes.xml e os resultados são mostrados por JavaScript com o framework AngularJS.
                         <br/>
                         <br/>
                     </p>
@@ -42,28 +44,16 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
-                    <div ng-controller="mainController">
-                        <div class="panel with-nav-tabs panel-info">
-                            <div class="panel-heading">
-                                    <ul class="nav nav-tabs">
-                                        <li class="active"><a href="#tab1default" data-toggle="tab">Visualizar Cadastrados </a></li>
-                                        <li><a href="#tab2default" data-toggle="tab">Realizar Busca</a></li>
-                                    </ul>
-                            </div>
-                            <div class="panel-body">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade in active" id="cadastros" >
-                                        <table ng-table="vm.tableParams" class="table" show-filter="true">
-                                            <tr ng-repeat="user in $data">
-                                                <td title="'Name'" filter="{ name: 'text'}" sortable="'name'">
-                                                    {{user.name}}</td>
-                                                <td title="'Age'" filter="{ age: 'number'}" sortable="'age'">
-                                                    {{user.age}}</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="tab-pane fade" id="busca">Default 2</div>
-                                </div>
+                    <div class="panel with-nav-tabs panel-info">
+                        <div class="panel-heading">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="/" data-toggle="tab">Visualizar Cadastrados </a></li>
+                                <li><a href="#busca/" data-toggle="tab">Realizar Busca</a></li>
+                            </ul>
+                        </div>
+                        <div class="panel-body">
+                            <div class="tab-content">
+                                <div ng-view></div>
                             </div>
                         </div>
                     </div>

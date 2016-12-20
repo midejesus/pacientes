@@ -1,0 +1,15 @@
+<div class="tab-pane fade in active" id="cadastros" >
+    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-4">
+        <table ng-table="usersTable" class="table" show-filter="false">
+            <tr ng-repeat="user in $data">
+                <td title="'Pacientes'" ng-cloak>
+                    <a href="#paciente/"> {{user.name}} </a></td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-lg-9 col-md-9 col-sm-6 col-xs-8">
+        <br/>
+        <h3 class="text-center"> Selecione um paciente. </h3>
+    </div>
+</div>
+

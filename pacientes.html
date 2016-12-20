@@ -1,0 +1,26 @@
+<div class="panel-body">
+    <div class="tab-content">
+        <div class="tab-pane fade in active" id="cadastros" >
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-4">
+                <table ng-table="usersTable" class="table" show-filter="false">
+                    <tr ng-repeat="user in $data">
+                        <td title="'Pacientes'" ng-cloak>
+                            <a href="#pacientes/">{{user.name}}</a></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-lg-9 col-md-9 col-sm-6 col-xs-8">
+                <p>O número do paciente é {{tableIndex}}</p>
+                <table ng-table="usersTable" class="table" show-filter="true">
+                    <tr ng-repeat="user in $data">
+                        <td title="'Campos'" filter="{ campo: 'text'}" sortable="'campo'" ng-cloak>
+                            {{user.name}}</td>
+                        <td title="'Valores'" filter="{ valores: 'text'}" sortable="'valores'" ng-cloak>
+                            {{user.age}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="busca">Default 2</div>
+    </div>
+</div>
