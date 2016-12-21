@@ -1,0 +1,17 @@
+<div class="col-lg-3 col-md-3 col-sm-6 col-xs-4">
+     <div style="margin-bottom: 20px">
+        <label class="checkbox" ng-repeat="col in colunas">
+          <input type="checkbox" ng-model="col.show" /> {{col.campo}}
+        </label>
+      </div>
+</div>
+<div class="col-lg-9 col-md-9 col-sm-6 col-xs-8">
+    <table ng-table-dynamic="tableParams with colunas" 
+             class="table table-condensed table-bordered table-striped">
+        <tr ng-repeat="row in $data">
+          <td ng-repeat="col in $colunas">{{row[col.campo]}}</td>
+        </tr>
+      </table>
+</div>
+
+

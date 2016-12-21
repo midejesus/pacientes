@@ -28,28 +28,26 @@ pacientesApp.service('xmlData',function($http){
             }
         }).then(function successCallback(response) {
             return response.data;
-        }); 
-    
+        });    
 });
 
-pacientesApp.service('allData', function(xmlData){
-        xmlData.getData.then(function(data){
-        this.xmlData = data;
-        this.allKeys= function(){
+pacientesApp.factory('trataDados', function () {
+    
+        function chavesTodas(dados){
             var i, keys =[];
-            for(i=0; i<$this.xmlData.length; i++){
-               keys = keys.concat(Object.keys($this.xmlData[i]));
+            for(i=0; i<dados.length; i++){
+               keys = keys.concat(Object.keys(dados[i]));
             }
-            return keys;
+            return unicos(keys);
         };
-        
-        function unicas() {
+
+        function unicos(allKeys) {
             var seen = {};
             var out = [];
-            var len = $scope.allKeys().length;
+            var len = allKeys.length;
             var j = 0;
             for(var i = 0; i < len; i++) {
-                 var item = $scope.allKeys()[i];
+                 var item = allKeys[i];
                  if(seen[item] !== 1) {
                        seen[item] = 1;
                        out[j++] = item;
@@ -57,34 +55,44 @@ pacientesApp.service('allData', function(xmlData){
             }
             return out;
         };
-        
-        function nomesPacientes(){
-            c=[];
-            for(var i=0, l=$scope.xmlData.length; i<l; i++){
-                if($scope.xmlData[i].numeroPaciente!==""){
-                    c.push({id: i, numero: $scope.xmlData[i].numeroPaciente});
+
+        function nomesPacientes(dados){
+            var c=[];
+            for(var i=0, l=dados.length; i<l; i++){
+                if(dados[i].numeroPaciente!==""){
+                    c.push({id: i, numero: dados[i].numeroPaciente});
                 }
                 else{
                     c.push({id: i, numero: "Sem número"});
                 }
             }
             return c;
-            
+
         };
         
-        function toObject() {
-            var el = {}, aux =[];
-            for (var i = 0, l = unicas2Obj.length; i < l; ++i){
-                aux.push({name:unicas2Obj[i]});
+        function camposValores(obj){
+            var d=[], chaves = Object.keys(obj);
+            for(var i=0, l=chaves.length; i<l; i++){
+                    d.push({campo: chaves[i], valor: obj[chaves[i]]});
             }
-            return aux;
+            return d;
+            
         };
-        var unicas2Obj = unicas();
-        this.nomePacientes = nomesPacientes();
-        this.keys = unicas();            
-//        console.log($scope.nomePacientes); 
-        //data set aceita tanto arrays simples como array de objetos.
-    });
+    
+        function colunas(listakeys){
+            var f=[];
+                for(var i=0, l=listakeys.length; i<l; i++){
+                        f.push({campo: listakeys[i], show:false});
+                }
+                return f;
+        };
+
+    return {
+        getAllKeys: chavesTodas, 
+        getPacientes: nomesPacientes,
+        getCamposValores: camposValores,
+        getColunas: colunas
+    };
 });
 
 pacientesApp.controller('alertController',['$scope',function($scope){
@@ -106,73 +114,34 @@ pacientesApp.controller('tabController',['$scope',function($scope){
 }]);
 
 
-pacientesApp.controller('dataController',['$scope','NgTableParams', 'xmlData',function($scope,NgTableParams,xmlData){
+pacientesApp.controller('dataController',['$scope','NgTableParams', 'xmlData','trataDados',function($scope, NgTableParams, xmlData, trataDados){
 
     xmlData.getData.then(function(data){
         $scope.xmlData = data;
-        $scope.allKeys= function(){
-            var i, keys =[];
-            for(i=0; i<$scope.xmlData.length; i++){
-               keys = keys.concat(Object.keys($scope.xmlData[i]));
-            }
-            return keys;
-        };
-        
-        function unicas() {
-            var seen = {};
-            var out = [];
-            var len = $scope.allKeys().length;
-            var j = 0;
-            for(var i = 0; i < len; i++) {
-                 var item = $scope.allKeys()[i];
-                 if(seen[item] !== 1) {
-                       seen[item] = 1;
-                       out[j++] = item;
-                 }
-            }
-            return out;
-        };
-        
-        function nomesPacientes(){
-            c=[];
-            for(var i=0, l=$scope.xmlData.length; i<l; i++){
-                if($scope.xmlData[i].numeroPaciente!==""){
-                    c.push({id: i, numero: $scope.xmlData[i].numeroPaciente});
-                }
-                else{
-                    c.push({id: i, numero: "Sem número"});
-                }
-            }
-            return c;
-            
-        };
-        
-        var unicas2Obj = unicas();
-        function toObject() {
-            var el = {}, aux =[];
-            for (var i = 0, l = unicas2Obj.length; i < l; ++i){
-                aux.push({name:unicas2Obj[i]});
-            }
-            return aux;
-        };
-        
-        $scope.nomePacientes = nomesPacientes();
-        $scope.keys = unicas();            
-//        console.log($scope.nomePacientes);
-        $scope.usersTable = new NgTableParams({}, {counts: [], dataset: $scope.nomePacientes}); 
-        //data set aceita tanto arrays simples como array de objetos.
-    });
-     $scope.usersTable = new NgTableParams({}, {counts: [], dataset: $scope.nomePacientes});
+        $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
+        $scope.usersTable = new NgTableParams({}, {counts: [], dataset: $scope.listaPacientes});
+    });   
 }]);
 
-pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$routeParams', function($scope,NgTableParams,$routeParams){
+pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$routeParams', 'xmlData','trataDados', function($scope, NgTableParams, $routeParams, xmlData, trataDados){
+    xmlData.getData.then(function(data){
+        $scope.xmlData = data;
+        $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
+        $scope.usersTable = new NgTableParams({}, {counts: [], dataset: $scope.listaPacientes});
+    });    
     var users = [{name: "Moroni", age: 50}, {name: "michelly", age:23}/*,*/];
-    $scope.usersTable = new NgTableParams({}, {counts: [],dataset: users});
-    $scope.tableIndex = parseInt($routeParams.num);
-    console.log($scope.tableIndex);
-    
+    var num = parseInt($routeParams.num);
+    $scope.pacienteIndex = $scope.listaPacientes[num];
+    $scope.pacienteAlvo = trataDados.getCamposValores($scope.xmlData[num]);
+    $scope.dadosTable = new NgTableParams({}, {counts: [],dataset: $scope.pacienteAlvo});
 }]);
 
-pacientesApp.controller('buscaController',['$scope','NgTableParams',function($scope,NgTableParams){
+pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
+    xmlData.getData.then(function(data){
+        $scope.xmlData = data;
+        $scope.listaCampos = trataDados.getAllKeys($scope.xmlData);
+        $scope.colunas = trataDados.getColunas($scope.listaCampos);
+    });
+    $scope.filtroColuna = new NgTableParams({}, {counts: [],dataset: $scope.xmlData});
     
 }]);
