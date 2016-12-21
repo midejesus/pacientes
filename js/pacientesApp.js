@@ -82,7 +82,13 @@ pacientesApp.factory('trataDados', function () {
         function colunas(listakeys){
             var f=[];
                 for(var i=0, l=listakeys.length; i<l; i++){
-                        f.push({campo: listakeys[i], show:false});
+                    f.push({field: listakeys[i], 
+                            title:  listakeys[i],
+                            titleAlt: listakeys[i],
+                            sortable:  listakeys[i],
+                            show: false,
+//                            filter: {listakeys[i]: 'text'}
+                        });
                 }
                 return f;
         };
@@ -119,7 +125,7 @@ pacientesApp.controller('dataController',['$scope','NgTableParams', 'xmlData','t
     xmlData.getData.then(function(data){
         $scope.xmlData = data;
         $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
-        $scope.usersTable = new NgTableParams({}, {counts: [], dataset: $scope.listaPacientes});
+        $scope.usersTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
     });   
 }]);
 
@@ -127,13 +133,13 @@ pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$route
     xmlData.getData.then(function(data){
         $scope.xmlData = data;
         $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
-        $scope.usersTable = new NgTableParams({}, {counts: [], dataset: $scope.listaPacientes});
+        $scope.usersTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
     });    
     var users = [{name: "Moroni", age: 50}, {name: "michelly", age:23}/*,*/];
     var num = parseInt($routeParams.num);
     $scope.pacienteIndex = $scope.listaPacientes[num];
     $scope.pacienteAlvo = trataDados.getCamposValores($scope.xmlData[num]);
-    $scope.dadosTable = new NgTableParams({}, {counts: [],dataset: $scope.pacienteAlvo});
+    $scope.dadosTable = new NgTableParams({count:25}, {counts: [],dataset: $scope.pacienteAlvo});
 }]);
 
 pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
@@ -141,7 +147,6 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
         $scope.xmlData = data;
         $scope.listaCampos = trataDados.getAllKeys($scope.xmlData);
         $scope.colunas = trataDados.getColunas($scope.listaCampos);
-    });
-    $scope.filtroColuna = new NgTableParams({}, {counts: [],dataset: $scope.xmlData});
-    
+        $scope.filtroColuna = new NgTableParams({count:$scope.xmlData.length}, {counts: [],dataset: $scope.xmlData});
+    });    
 }]);
