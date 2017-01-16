@@ -1,34 +1,36 @@
 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-4">
-     <div style="margin-bottom: 20px">
-        <label class="checkbox" ng-repeat="col in colunas">
-          <input type="checkbox" ng-model="col.show" /> {{col.field}}
-        </label>
-      </div>
+    <h4>Selecione os campos de interesse para exibição na tabela.</h4>
+    <table ng-table="listaCamposTable" class="table" show-filter="true">
+        <tr ng-repeat="linha in $data">
+            <td title="'Campos'" filter="{ field: 'text'}" sortable="'field'" ng-cloak >
+                <label class="checkbox">
+                    <input type="checkbox" ng-model="linha.show" /> <p>{{linha.field}}</p>
+                </label>
+            </td>
+        </tr>
+    </table>
 </div>
-<div class="col-lg-9 col-md-9 col-sm-6 col-xs-8">
-          <table ng-table-dynamic="filtroColuna with colunas" 
-             class="table table-condensed table-bordered table-striped" show-filter="true">
+<div class="col-lg-7 col-md-7 col-sm-4 col-xs-6">  
+<form name="searchForm" novalidate ng-submit="applyGlobalSearch()">
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Termos de busca" name="searchTerm" ng-model="globalSearchTerm" required />
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="submit" ng-disabled="searchForm.$invalid">
+                  <span class="glyphicon glyphicon-search"></span>
+              </button>
+              </span>
+            </div>
+          </form>
+</div>
+<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">  
+    <button class="btn btn-primary pull-right" ng-disabled="!filtroColuna.hasFilter()" ng-click="filtroColuna.filter({})">Desfazer filtros</button>
+</div>
+<br/>
+<div class="col-lg-9 col-md-9 col-sm-6 col-xs-8">  
+    <br/>
+    <table ng-table-dynamic="filtroColuna with colunas" class="table table-condensed table-bordered table-striped" show-filter="true">
         <tr ng-repeat="row in $data">
           <td ng-repeat="col in $columns">{{row[col.field]}}</td>
         </tr>
       </table>
-<!--
-<table ng-table="filtroColuna" class="table" ng-table-columns-binding="colunas">
-        <tr>
-            <th ng-repeat="col in colunas"
-                class="text-left sortable header observation-header" ng-class="{
-                        'sort-asc': tableParams.isSortBy(col.field, 'asc'),
-                        'sort-desc': tableParams.isSortBy(col.field, 'desc')
-                      }"
-                ng-click="tableParams.sorting(col.field, tableParams.isSortBy(col.field, 'desc') ? 'asc' : 'desc')">
-                <div>{{col.title}}</div>
-            </th>
-        </tr>
-        <tbody>
-            <tr ng-repeat="dataObj in $data">
-                <td ng-repeat="col in colunas" data-title="col.title" sortable="col.field">{{dataObj[col.field]}}</td>
-            </tr>
-        </tbody>
-    </table>
--->
 </div>

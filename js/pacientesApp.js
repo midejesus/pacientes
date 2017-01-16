@@ -69,6 +69,13 @@ pacientesApp.factory('trataDados', function () {
             return c;
 
         };
+        function addId(dados){
+            for(var i=0, l=dados.length; i<l; i++){
+                    dados[i].id= i;
+                }
+            return dados;
+
+        };
         
         function camposValores(obj){
             var d=[], chaves = Object.keys(obj);
@@ -82,22 +89,31 @@ pacientesApp.factory('trataDados', function () {
         function colunas(listakeys){
             var f=[];
                 for(var i=0, l=listakeys.length; i<l; i++){
+                    var aux = listakeys[i];
                     f.push({field: listakeys[i], 
                             title:  listakeys[i],
                             titleAlt: listakeys[i],
                             sortable:  listakeys[i],
                             show: false,
-//                            filter: {listakeys[i]: 'text'}
+//                            filter: {listakeys[i] : 'text'}
                         });
                 }
                 return f;
         };
+                           
+        function addFilter(lista){
+                for(var i=0, l=lista.length; i<l; i++){
+                    lista[i].filter = {'lista[i].title' : 'text'}
+                    }
+               return lista;     
+        };                  
 
     return {
         getAllKeys: chavesTodas, 
         getPacientes: nomesPacientes,
         getCamposValores: camposValores,
-        getColunas: colunas
+        getColunas: colunas,
+        insertID: addId
     };
 });
 
@@ -145,8 +161,23 @@ pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$route
 pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
     xmlData.getData.then(function(data){
         $scope.xmlData = data;
+        $scope.xmlData = trataDados.insertID($scope.xmlData);
         $scope.listaCampos = trataDados.getAllKeys($scope.xmlData);
         $scope.colunas = trataDados.getColunas($scope.listaCampos);
+        $scope.colunas[220].show=true;
         $scope.filtroColuna = new NgTableParams({count:$scope.xmlData.length}, {counts: [],dataset: $scope.xmlData});
+        $scope.listaCamposTable = new NgTableParams({count:$scope.colunas.length}, {counts: [],dataset: $scope.colunas});
+        $scope.changeFilter = changeFilter;
+        $scope.applyGlobalSearch = applyGlobalSearch;
+        function applyGlobalSearch(){
+            var term = $scope.globalSearchTerm;
+            $scope.filtroColuna.filter({ $: term });
+        }
+        function changeFilter(field, value){
+            var filter = {};
+            filter[field] = value;
+            angular.extend($scope.filtroColuna.filter(), filter);
+        };
+     
     });    
 }]);
