@@ -20,6 +20,7 @@ pacientesApp.config(function ($routeProvider,$locationProvider) {
 });
 
 pacientesApp.service('xmlData',function($http){
+    //Esse servico retorna a lista de pacientes a partir do XML. Cada paciente eh um objeto. 
     this.getData  = $http.get('js/pacientes.xml',{
             transformResponse : function(data) {
                 var x2js = new X2JS();
@@ -33,27 +34,34 @@ pacientesApp.service('xmlData',function($http){
 
 pacientesApp.factory('trataDados', function () {
     
-        function chavesTodas(dados){
-            var i, keys =[];
+        function chavesToColunas(dados){
+            var i, keys =[], seen ={}, unicas=[];
             for(i=0; i<dados.length; i++){
                keys = keys.concat(Object.keys(dados[i]));
             }
-            return unicos(keys);
-        };
-
-        function unicos(allKeys) {
-            var seen = {};
-            var out = [];
-            var len = allKeys.length;
-            var j = 0;
+            
+            //o loop abaixo filtra as chaves unicas 
+            var len = keys.length, j=0;
             for(var i = 0; i < len; i++) {
-                 var item = allKeys[i];
+                 var item = keys[i];
                  if(seen[item] !== 1) {
                        seen[item] = 1;
-                       out[j++] = item;
+                       unicas[j++] = item;
                  }
             }
-            return out;
+            //o loop abaixo adiciona os campos de configuração das colunas
+            var colunas=[];
+                for(var i=0, l=unicas.length; i<l; i++){
+                    var aux = unicas[i];
+                    colunas.push({field: unicas[i], 
+                            title:  unicas[i],
+                            titleAlt: unicas[i],
+                            sortable:  unicas[i],
+                            show: false,
+//                            filter: {listakeys[i] : 'text'}
+                        });
+                }
+            return colunas;
         };
 
         function nomesPacientes(dados){
@@ -70,11 +78,17 @@ pacientesApp.factory('trataDados', function () {
 
         };
         function addId(dados){
+            var nova = []
             for(var i=0, l=dados.length; i<l; i++){
-                    dados[i].id= i;
-                }
-            return dados;
-
+                   var old_object = dados[i];
+                var new_object = {}; 
+                new_object.id = i; // The property we need at the start 
+                for (var key in old_object) { // Looping through all values of the old object 
+                    new_object[key] = old_object[key];
+                } 
+                nova.push(new_object); // Replacing the old object with the desired one
+            }
+            return nova;
         };
         
         function camposValores(obj){
@@ -85,21 +99,6 @@ pacientesApp.factory('trataDados', function () {
             return d;
             
         };
-    
-        function colunas(listakeys){
-            var f=[];
-                for(var i=0, l=listakeys.length; i<l; i++){
-                    var aux = listakeys[i];
-                    f.push({field: listakeys[i], 
-                            title:  listakeys[i],
-                            titleAlt: listakeys[i],
-                            sortable:  listakeys[i],
-                            show: false,
-//                            filter: {listakeys[i] : 'text'}
-                        });
-                }
-                return f;
-        };
                            
         function addFilter(lista){
                 for(var i=0, l=lista.length; i<l; i++){
@@ -109,10 +108,9 @@ pacientesApp.factory('trataDados', function () {
         };                  
 
     return {
-        getAllKeys: chavesTodas, 
+        getAllColumns: chavesToColunas, 
         getPacientes: nomesPacientes,
         getCamposValores: camposValores,
-        getColunas: colunas,
         insertID: addId
     };
 });
@@ -127,9 +125,13 @@ pacientesApp.controller('alertController',['$scope',function($scope){
 
 pacientesApp.controller('tabController',['$scope',function($scope){
     $scope.tabs = [
-        { title:'Visualizar Cadastrados', icon:'glyphicon glyphicon-th-list', href:"#/"},
-        { title:'Realizar Busca', icon:'glyphicon glyphicon-search', href:"#/busca/", disabled: true }
+        { title:'Visualizar Cadastrados', icon:'glyphicon glyphicon-th-list', href:"/"},
+        { title:'Realizar Busca', icon:'glyphicon glyphicon-search', href:"/busca/", disabled: true }
     ];
+    
+    function getHash(data) {
+        window.location.hash = data;
+    };
     $scope.changeHash = function(data) {
         window.location.hash = data;
     };
@@ -137,21 +139,17 @@ pacientesApp.controller('tabController',['$scope',function($scope){
 
 
 pacientesApp.controller('dataController',['$scope','NgTableParams', 'xmlData','trataDados',function($scope, NgTableParams, xmlData, trataDados){
-
     xmlData.getData.then(function(data){
         $scope.xmlData = data;
+        $scope.buscaData=trataDados.insertID($scope.xmlData);
+        console.log($scope.buscaData);
         $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
-        $scope.usersTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
+        $scope.pacientesTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
+        $scope.camposColunas = trataDados.getAllColumns($scope.buscaData);
     });   
 }]);
 
-pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$routeParams', 'xmlData','trataDados', function($scope, NgTableParams, $routeParams, xmlData, trataDados){
-    xmlData.getData.then(function(data){
-        $scope.xmlData = data;
-        $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
-        $scope.usersTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
-    });    
-    var users = [{name: "Moroni", age: 50}, {name: "michelly", age:23}/*,*/];
+pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$routeParams', 'xmlData','trataDados', function($scope, NgTableParams, $routeParams, xmlData, trataDados){  
     var num = parseInt($routeParams.num);
     $scope.pacienteIndex = $scope.listaPacientes[num];
     $scope.pacienteAlvo = trataDados.getCamposValores($scope.xmlData[num]);
@@ -159,25 +157,35 @@ pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$route
 }]);
 
 pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
-    xmlData.getData.then(function(data){
-        $scope.xmlData = data;
-        $scope.xmlData = trataDados.insertID($scope.xmlData);
-        $scope.listaCampos = trataDados.getAllKeys($scope.xmlData);
-        $scope.colunas = trataDados.getColunas($scope.listaCampos);
-        $scope.colunas[220].show=true;
-        $scope.filtroColuna = new NgTableParams({count:$scope.xmlData.length}, {counts: [],dataset: $scope.xmlData});
-        $scope.listaCamposTable = new NgTableParams({count:$scope.colunas.length}, {counts: [],dataset: $scope.colunas});
-        $scope.changeFilter = changeFilter;
-        $scope.applyGlobalSearch = applyGlobalSearch;
-        function applyGlobalSearch(){
-            var term = $scope.globalSearchTerm;
-            $scope.filtroColuna.filter({ $: term });
-        }
-        function changeFilter(field, value){
-            var filter = {};
-            filter[field] = value;
-            angular.extend($scope.filtroColuna.filter(), filter);
+    $scope.camposColunas[0].show=true;
+    $scope.listaCamposTable = new NgTableParams({count:13}, {counts: [],dataset: $scope.camposColunas});
+    $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts: [],dataset: $scope.buscaData});
+    $scope.applyGlobalSearch = applyGlobalSearch;
+    function applyGlobalSearch(){
+        var term = $scope.globalSearchTerm;
+        function listaSelecionadas(){
+            var selecionadas = {};
+            for(var i=0, l=$scope.camposColunas.length; i<l; i++){
+                if ($scope.camposColunas[i].show == true){
+                    selecionadas[$scope.camposColunas[i].title] = term;
+                }
+            }
+            return selecionadas;
         };
-     
-    });    
+        $scope.tabelaFiltrada.filter(listaSelecionadas());
+        console.log(listaSelecionadas());
+    };
+   
 }]);
+
+pacientesApp.filter('BySearchTerm', function(){
+  return function(linha){
+    var out = [];
+    angular.forEach(linha, function(language){
+      if(language.type === 'static'){
+        out.push(language)
+      }
+    })
+    return out;
+  }
+})

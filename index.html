@@ -49,6 +49,7 @@
                 <div class="panel with-nav-tabs panel-info">
                     <div class="panel-heading">
                        <uib-tabset active="active">
+<!--                        <uib-tab ng-repeat="tab in tabs" active="tab.active" >-->
                         <uib-tab ng-repeat="tab in tabs" active="tab.active" select="changeHash(tab.href)" >
                            <uib-tab-heading ng-cloak>
                               <i class="{{tab.icon}}"></i> {{tab.title}}

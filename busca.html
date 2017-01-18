@@ -11,7 +11,7 @@
     </table>
 </div>
 <div class="col-lg-7 col-md-7 col-sm-4 col-xs-6">  
-<form name="searchForm" novalidate ng-submit="applyGlobalSearch()">
+    <form name="searchForm" novalidate ng-submit="applyGlobalSearch()">
             <div class="input-group">
               <input type="text" class="form-control" placeholder="Termos de busca" name="searchTerm" ng-model="globalSearchTerm" required />
               <span class="input-group-btn">
@@ -23,13 +23,13 @@
           </form>
 </div>
 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">  
-    <button class="btn btn-primary pull-right" ng-disabled="!filtroColuna.hasFilter()" ng-click="filtroColuna.filter({})">Desfazer filtros</button>
+    <button class="btn btn-primary pull-right" ng-disabled="!tabelaFiltrada.hasFilter()" ng-click="tabelaFiltrada.filter({})">Desfazer filtros</button>
 </div>
 <br/>
-<div class="col-lg-9 col-md-9 col-sm-6 col-xs-8">  
+<div class="col-lg-9 col-md-9 col-sm-6 col-xs-8" style="overflow: auto">  
     <br/>
-    <table ng-table-dynamic="filtroColuna with colunas" class="table table-condensed table-bordered table-striped" show-filter="true">
-        <tr ng-repeat="row in $data">
+    <table ng-table-dynamic="tabelaFiltrada with camposColunas" class="table table-condensed table-bordered table-striped" show-filter="true">
+        <tr ng-repeat="row in $data | BySearchTerm" >
           <td ng-repeat="col in $columns">{{row[col.field]}}</td>
         </tr>
       </table>
