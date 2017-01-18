@@ -1,10 +1,10 @@
 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-4">
     <h4>Selecione os campos de interesse para exibição na tabela.</h4>
-    <table ng-table="listaCamposTable" class="table" show-filter="true">
+    <table ng-table="listaCamposTable" class="table table-condensed" show-filter="true">
         <tr ng-repeat="linha in $data">
             <td title="'Campos'" filter="{ field: 'text'}" sortable="'field'" ng-cloak >
                 <label class="checkbox">
-                    <input type="checkbox" ng-model="linha.show" /> <p>{{linha.field}}</p>
+                    <input type="checkbox" ng-model="linha.show" ng-change="selectedColumns(linha)"/> <p>{{linha.field}}</p>
                 </label>
             </td>
         </tr>
@@ -28,9 +28,16 @@
 <br/>
 <div class="col-lg-9 col-md-9 col-sm-6 col-xs-8" style="overflow: auto">  
     <br/>
+<!--
     <table ng-table-dynamic="tabelaFiltrada with camposColunas" class="table table-condensed table-bordered table-striped" show-filter="true">
-        <tr ng-repeat="row in $data | BySearchTerm" >
-          <td ng-repeat="col in $columns">{{row[col.field]}}</td>
+        <tr ng-repeat="row in $data " >
+          <td ng-repeat="col in $columns">{{row[col.title]}}</td>
         </tr>
       </table>
+-->
+        <table ng-table-dynamic="tabelaFiltrada with columnHeaders" class="table table-bordered table-striped" show-filter="true">
+        <tr ng-repeat="linha in newData">
+            <td ng-repeat="col in columnHeaders" title="col.title'" filter="{ field: 'text'}" sortable="'field'" ng-cloak >{{linha[col.field]}}</td>
+        </tr>
+    </table>
 </div>

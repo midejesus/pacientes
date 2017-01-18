@@ -142,10 +142,10 @@ pacientesApp.controller('dataController',['$scope','NgTableParams', 'xmlData','t
     xmlData.getData.then(function(data){
         $scope.xmlData = data;
         $scope.buscaData=trataDados.insertID($scope.xmlData);
-        console.log($scope.buscaData);
         $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
         $scope.pacientesTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
         $scope.camposColunas = trataDados.getAllColumns($scope.buscaData);
+        $scope.selected = ['id'];
     });   
 }]);
 
@@ -159,33 +159,64 @@ pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$route
 pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
     $scope.camposColunas[0].show=true;
     $scope.listaCamposTable = new NgTableParams({count:13}, {counts: [],dataset: $scope.camposColunas});
-    $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts: [],dataset: $scope.buscaData});
+    function slice(object, keys) {
+        return Object.keys(object)
+            .filter(function (key) {
+                return keys.indexOf(key) >= 0;
+            })
+            .reduce(function (acc, key) {
+                acc[key] = object[key];
+                return acc;
+            }, {});
+    };
+    $scope.newData = populateNewData([]);
+    $scope.columnHeaders = trataDados.getAllColumns($scope.newData);
+    $scope.columnHeaders[0].show=true;
+    $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts:[], dataset: $scope.newData});
     $scope.applyGlobalSearch = applyGlobalSearch;
     function applyGlobalSearch(){
         var term = $scope.globalSearchTerm;
-        function listaSelecionadas(){
-            var selecionadas = {};
-            for(var i=0, l=$scope.camposColunas.length; i<l; i++){
-                if ($scope.camposColunas[i].show == true){
-                    selecionadas[$scope.camposColunas[i].title] = term;
-                }
-            }
-            return selecionadas;
-        };
-        $scope.tabelaFiltrada.filter(listaSelecionadas());
-        console.log(listaSelecionadas());
+        $scope.tabelaFiltrada.filter({ $: term });
+              $scope.tabelaFiltrada.reload(); 
     };
-   
+    function populateNewData(lista){
+        for(var i=0, l=$scope.buscaData.length; i<l; i++){
+            lista.push(slice($scope.buscaData[i],$scope.selected));
+        };
+        return lista;
+    };
+    $scope.selectedColumns = function(coluna) {
+        // $scope.selected só parece sofrer alterações aqui dentro.
+        if (coluna!==undefined){
+            //esse bloco criar a lista de colunas selecionadas
+            if(coluna.show == true){
+                $scope.selected.push(coluna.title);
+            }
+            else if(coluna.show == false){
+                var index = $scope.selected.indexOf(coluna.title);
+                $scope.selected.splice(index, 1);
+            };
+        };
+        $scope.newData = [];
+        for(var i=0, l=$scope.buscaData.length; i<l; i++){
+            $scope.newData.push(slice($scope.buscaData[i],$scope.selected));
+        };
+        $scope.columnHeaders = trataDados.getAllColumns($scope.newData);
+        function setShow(item,index) {
+            return item.show=true;
+        };
+        $scope.columnHeaders.map(setShow);
+    };
+    $scope.$watch('newData', function(newValue, oldValue) {
+        //this how we prevent second call
+        if (newValue!=oldValue){
+        $scope.tabelaFiltrada.reload(); 
+//            console.log("recarreguei", $scope.newData, $scope.columnHeaders);
+//            console.log("compare", $scope.buscaData, $scope.camposColunas);
+        };
+//        console.log('hey, myVar has changed!', $scope.newData, "e meus headers",$scope.columnHeaders);
+     });
+//    console.log($scope.buscaData);
+
 }]);
 
-pacientesApp.filter('BySearchTerm', function(){
-  return function(linha){
-    var out = [];
-    angular.forEach(linha, function(language){
-      if(language.type === 'static'){
-        out.push(language)
-      }
-    })
-    return out;
-  }
-})
