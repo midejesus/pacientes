@@ -55,10 +55,8 @@ pacientesApp.factory('trataDados', function () {
                     var aux = unicas[i];
                     colunas.push({field: unicas[i], 
                             title:  unicas[i],
-                            titleAlt: unicas[i],
-                            sortable:  unicas[i],
                             show: false,
-//                            filter: {listakeys[i] : 'text'}
+                            filter: undefined
                         });
                 }
             return colunas;
@@ -157,9 +155,10 @@ pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$route
 }]);
 
 pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
-    $scope.camposColunas[0].show=true;
-    $scope.listaCamposTable = new NgTableParams({count:13}, {counts: [],dataset: $scope.camposColunas});
+    $scope.camposColunas[0].show=true; // para deixar o id marcado na tabela de seleção de colunas
+    $scope.listaCamposTable = new NgTableParams({count:13}, {counts: [],dataset: $scope.camposColunas}); //parametros da tabela de seleção de colunas
     function slice(object, keys) {
+        //essa função serve para filtrar a tabela de dados geral(object), retornando uma tabela com apenas as colunas selecionadas (keys)
         return Object.keys(object)
             .filter(function (key) {
                 return keys.indexOf(key) >= 0;
@@ -172,13 +171,13 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
     $scope.newData = populateNewData([]);
     $scope.columnHeaders = trataDados.getAllColumns($scope.newData);
     $scope.columnHeaders[0].show=true;
+    $scope.orderByColuna = function (coluna) {
+        $scope.sort = {
+            type: coluna,
+            reverse: false
+        };
+    }
     $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts:[], dataset: $scope.newData});
-    $scope.applyGlobalSearch = applyGlobalSearch;
-    function applyGlobalSearch(){
-        var term = $scope.globalSearchTerm;
-        $scope.tabelaFiltrada.filter({ $: term });
-              $scope.tabelaFiltrada.reload(); 
-    };
     function populateNewData(lista){
         for(var i=0, l=$scope.buscaData.length; i<l; i++){
             lista.push(slice($scope.buscaData[i],$scope.selected));
@@ -211,12 +210,7 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
         //this how we prevent second call
         if (newValue!=oldValue){
         $scope.tabelaFiltrada.reload(); 
-//            console.log("recarreguei", $scope.newData, $scope.columnHeaders);
-//            console.log("compare", $scope.buscaData, $scope.camposColunas);
         };
-//        console.log('hey, myVar has changed!', $scope.newData, "e meus headers",$scope.columnHeaders);
      });
-//    console.log($scope.buscaData);
-
 }]);
 

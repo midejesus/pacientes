@@ -11,33 +11,22 @@
     </table>
 </div>
 <div class="col-lg-7 col-md-7 col-sm-4 col-xs-6">  
-    <form name="searchForm" novalidate ng-submit="applyGlobalSearch()">
+    <form name="searchForm" novalidate>
             <div class="input-group">
-              <input type="text" class="form-control" placeholder="Termos de busca" name="searchTerm" ng-model="globalSearchTerm" required />
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="submit" ng-disabled="searchForm.$invalid">
-                  <span class="glyphicon glyphicon-search"></span>
-              </button>
-              </span>
+                <div class="input-group-addon"><span class="glyphicon glyphicon-search"></span></div>
+              <input type="text" class="form-control" placeholder="Termos da busca" name="searchTerm" ng-model="searchTerm" required />
             </div>
           </form>
 </div>
 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">  
-    <button class="btn btn-primary pull-right" ng-disabled="!tabelaFiltrada.hasFilter()" ng-click="tabelaFiltrada.filter({})">Desfazer filtros</button>
+    <button class="btn btn-primary pull-right" ng-click="searchTerm = ''">Desfazer filtros</button>
 </div>
 <br/>
 <div class="col-lg-9 col-md-9 col-sm-6 col-xs-8" style="overflow: auto">  
     <br/>
-<!--
-    <table ng-table-dynamic="tabelaFiltrada with camposColunas" class="table table-condensed table-bordered table-striped" show-filter="true">
-        <tr ng-repeat="row in $data " >
-          <td ng-repeat="col in $columns">{{row[col.title]}}</td>
-        </tr>
-      </table>
--->
         <table ng-table-dynamic="tabelaFiltrada with columnHeaders" class="table table-bordered table-striped" show-filter="true">
-        <tr ng-repeat="linha in newData">
-            <td ng-repeat="col in columnHeaders" title="col.title'" filter="{ field: 'text'}" sortable="'field'" ng-cloak >{{linha[col.field]}}</td>
+        <tr ng-repeat="linha in newData|orderBy:sort.type:sort.reverse|filter:searchTerm">
+            <td ng-repeat="col in columnHeaders" title="col.title'" ng-click="orderByColuna(col.title)" ng-cloak >{{linha[col.field]}}</td>
         </tr>
     </table>
 </div>
