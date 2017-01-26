@@ -1,10 +1,12 @@
 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-4">
-    <h4>Selecione os campos de interesse para exibição na tabela.</h4>
+    <p>Selecione os campos de interesse para exibição na tabela.</p>
+    
+    <div class="checkbox"><input type="checkbox" id="checkbox1" ng-model="checkboxAll.value" ng-change="selectAllColumns(checkboxAll.value)"/></div> <label for="checkbox1"><p>Todos os campos</p></label>
     <table ng-table="listaCamposTable" class="table table-condensed" show-filter="true">
         <tr ng-repeat="linha in $data">
             <td title="'Campos'" filter="{ field: 'text'}" sortable="'field'" ng-cloak >
                 <label class="checkbox">
-                    <input type="checkbox" ng-model="linha.show" ng-change="selectedColumns(linha)"/> <p>{{linha.field}}</p>
+                    <input type="checkbox" ng-model="linha.show" ng-change="updateSelectedColumns(linha)" ng-disabled="checkboxAll.value"/> <p>{{linha.field}}</p>
                 </label>
             </td>
         </tr>
@@ -19,12 +21,12 @@
           </form>
 </div>
 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">  
-    <button class="btn btn-primary pull-right" ng-click="searchTerm = ''">Desfazer filtros</button>
+    <button class="btn btn-primary pull-right" ng-click="searchTerm = ''">Limpar Busca</button>
 </div>
 <br/>
 <div class="col-lg-9 col-md-9 col-sm-6 col-xs-8" style="overflow: auto">  
     <br/>
-        <table ng-table-dynamic="tabelaFiltrada with columnHeaders" class="table table-bordered table-striped" show-filter="true">
+        <table ng-table-dynamic="tabelaFiltrada with columnHeaders" class="table table-bordered table-striped" show-filter="false">
         <tr ng-repeat="linha in newData|orderBy:sort.type:sort.reverse|filter:searchTerm">
             <td ng-repeat="col in columnHeaders" title="col.title'" ng-click="orderByColuna(col.title)" ng-cloak >{{linha[col.field]}}</td>
         </tr>

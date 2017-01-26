@@ -34,7 +34,7 @@ pacientesApp.service('xmlData',function($http){
 
 pacientesApp.factory('trataDados', function () {
     
-        function chavesToColunas(dados){
+        function chavesToColunas(dados, estado ){
             var i, keys =[], seen ={}, unicas=[];
             for(i=0; i<dados.length; i++){
                keys = keys.concat(Object.keys(dados[i]));
@@ -55,7 +55,7 @@ pacientesApp.factory('trataDados', function () {
                     var aux = unicas[i];
                     colunas.push({field: unicas[i], 
                             title:  unicas[i],
-                            show: false,
+                            show: estado,
                             filter: undefined
                         });
                 }
@@ -106,7 +106,7 @@ pacientesApp.factory('trataDados', function () {
         };                  
 
     return {
-        getAllColumns: chavesToColunas, 
+        getHeaders: chavesToColunas, 
         getPacientes: nomesPacientes,
         getCamposValores: camposValores,
         insertID: addId
@@ -121,7 +121,7 @@ pacientesApp.controller('alertController',['$scope',function($scope){
     
 }]);
 
-pacientesApp.controller('tabController',['$scope',function($scope){
+pacientesApp.controller('tabController',['$scope', '$location',function($scope, $location){
     $scope.tabs = [
         { title:'Visualizar Cadastrados', icon:'glyphicon glyphicon-th-list', href:"/"},
         { title:'Realizar Busca', icon:'glyphicon glyphicon-search', href:"/busca/", disabled: true }
@@ -131,7 +131,7 @@ pacientesApp.controller('tabController',['$scope',function($scope){
         window.location.hash = data;
     };
     $scope.changeHash = function(data) {
-        window.location.hash = data;
+       $location.path(data);
     };
 }]);
 
@@ -142,8 +142,7 @@ pacientesApp.controller('dataController',['$scope','NgTableParams', 'xmlData','t
         $scope.buscaData=trataDados.insertID($scope.xmlData);
         $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
         $scope.pacientesTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
-        $scope.camposColunas = trataDados.getAllColumns($scope.buscaData);
-        $scope.selected = ['id'];
+        $scope.camposColunas = trataDados.getHeaders($scope.buscaData, false);
     });   
 }]);
 
@@ -157,6 +156,7 @@ pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$route
 pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
     $scope.camposColunas[0].show=true; // para deixar o id marcado na tabela de seleção de colunas
     $scope.listaCamposTable = new NgTableParams({count:13}, {counts: [],dataset: $scope.camposColunas}); //parametros da tabela de seleção de colunas
+    $scope.selected = ['id'];
     function slice(object, keys) {
         //essa função serve para filtrar a tabela de dados geral(object), retornando uma tabela com apenas as colunas selecionadas (keys)
         return Object.keys(object)
@@ -169,14 +169,13 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
             }, {});
     };
     $scope.newData = populateNewData([]);
-    $scope.columnHeaders = trataDados.getAllColumns($scope.newData);
-    $scope.columnHeaders[0].show=true;
-    $scope.orderByColuna = function (coluna) {
-        $scope.sort = {
-            type: coluna,
-            reverse: false
-        };
-    }
+    $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
+//    $scope.orderByColuna = function (coluna) {
+//        $scope.sort = {
+//            type: coluna,
+//            reverse: false
+//        };
+//    }
     $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts:[], dataset: $scope.newData});
     function populateNewData(lista){
         for(var i=0, l=$scope.buscaData.length; i<l; i++){
@@ -184,7 +183,21 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
         };
         return lista;
     };
-    $scope.selectedColumns = function(coluna) {
+    $scope.selectAllColumns = function(selection){
+        console.log(selection);
+        if (selection == true){
+            $scope.oldCamposColuna = $scope.camposColuna;
+            $scope.newData = $scope.buscaData;
+            $scope.columnHeaders = trataDados.getHeaders($scope.buscaData, true);
+            $scope.tabelaFiltrada.reload();
+        }
+        else{
+            novaTabela();
+        }
+        
+    };
+    $scope.updateSelectedColumns = function(coluna) {
+        //Essa função retorna uma nova tabela newData de acordo com as seleções de campos
         // $scope.selected só parece sofrer alterações aqui dentro.
         if (coluna!==undefined){
             //esse bloco criar a lista de colunas selecionadas
@@ -195,22 +208,26 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
                 var index = $scope.selected.indexOf(coluna.title);
                 $scope.selected.splice(index, 1);
             };
+            novaTabela();
         };
+    };
+    
+    function novaTabela(){
         $scope.newData = [];
         for(var i=0, l=$scope.buscaData.length; i<l; i++){
             $scope.newData.push(slice($scope.buscaData[i],$scope.selected));
         };
-        $scope.columnHeaders = trataDados.getAllColumns($scope.newData);
-        function setShow(item,index) {
-            return item.show=true;
-        };
-        $scope.columnHeaders.map(setShow);
+        $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
+        $scope.tabelaFiltrada.reload();
+
     };
-    $scope.$watch('newData', function(newValue, oldValue) {
-        //this how we prevent second call
-        if (newValue!=oldValue){
-        $scope.tabelaFiltrada.reload(); 
-        };
-     });
+        
+//    $scope.$watch('newData', function(newValue, oldValue) {
+//        //this how we prevent second call
+//        if (newValue!=oldValue){
+//        $scope.tabelaFiltrada.reload();
+//            console.log($scope.selected);
+//        };
+//     });
 }]);
 
