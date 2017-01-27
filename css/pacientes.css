@@ -33,4 +33,9 @@ td p {
   white-space: nowrap;
   width:240px;
 }
-
+table th.special{
+    color: #337ab7;
+}
+table th.special:hover{
+    color:  #5bc0de;
+}

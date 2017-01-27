@@ -170,13 +170,21 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
     };
     $scope.newData = populateNewData([]);
     $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
-//    $scope.orderByColuna = function (coluna) {
-//        $scope.sort = {
-//            type: coluna,
-//            reverse: false
-//        };
-//    }
-    $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts:[], dataset: $scope.newData});
+    $scope.sortReverse = false; 
+    $scope.sortColumn = function(col){
+        $scope.sortType= col;
+        if($scope.sortReverse){
+            $scope.sortReverse = false;
+            $scope.reverseclass = 'arrow-up';
+        }
+        else{
+            $scope.sortReverse = true;
+            $scope.reverseclass = 'arrow-down';
+        };
+    };
+    
+
+//    $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts:[], dataset: $scope.newData});
     function populateNewData(lista){
         for(var i=0, l=$scope.buscaData.length; i<l; i++){
             lista.push(slice($scope.buscaData[i],$scope.selected));
@@ -184,12 +192,9 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
         return lista;
     };
     $scope.selectAllColumns = function(selection){
-        console.log(selection);
         if (selection == true){
-            $scope.oldCamposColuna = $scope.camposColuna;
             $scope.newData = $scope.buscaData;
             $scope.columnHeaders = trataDados.getHeaders($scope.buscaData, true);
-            $scope.tabelaFiltrada.reload();
         }
         else{
             novaTabela();
@@ -201,10 +206,10 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
         // $scope.selected só parece sofrer alterações aqui dentro.
         if (coluna!==undefined){
             //esse bloco criar a lista de colunas selecionadas
-            if(coluna.show == true){
+            if(coluna.show){
                 $scope.selected.push(coluna.title);
             }
-            else if(coluna.show == false){
+            else {
                 var index = $scope.selected.indexOf(coluna.title);
                 $scope.selected.splice(index, 1);
             };
@@ -218,14 +223,12 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
             $scope.newData.push(slice($scope.buscaData[i],$scope.selected));
         };
         $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
-        $scope.tabelaFiltrada.reload();
 
     };
         
 //    $scope.$watch('newData', function(newValue, oldValue) {
 //        //this how we prevent second call
 //        if (newValue!=oldValue){
-//        $scope.tabelaFiltrada.reload();
 //            console.log($scope.selected);
 //        };
 //     });
