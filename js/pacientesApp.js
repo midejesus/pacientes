@@ -33,15 +33,28 @@ pacientesApp.service('xmlData',function($http){
 });
 
 pacientesApp.factory('trataDados', function () {
-    
+        // esse loop lista todas as chaves encontradas na base de dados
         function chavesToColunas(dados, estado ){
-            var i, keys =[], seen ={}, unicas=[];
+            var unicas = getUnicas(dados);
+            //o loop abaixo adiciona os campos de configuração das colunas
+            var colunas=[];
+                for(var i=0, l=unicas.length; i<l; i++){
+                    colunas.push({name: unicas[i], show: estado});
+                }
+            return colunas;
+        };
+        function listaTodas(dados){
+            var i, keys =[];
             for(i=0; i<dados.length; i++){
                keys = keys.concat(Object.keys(dados[i]));
             }
-            
+            return keys;
+        };
+        function getUnicas(dados){
+            //inicia pegando todas as chaves
+            var keys = listaTodas(dados);
             //o loop abaixo filtra as chaves unicas 
-            var len = keys.length, j=0;
+            var len = keys.length, j=0, seen={}, unicas=[];
             for(var i = 0; i < len; i++) {
                  var item = keys[i];
                  if(seen[item] !== 1) {
@@ -49,17 +62,14 @@ pacientesApp.factory('trataDados', function () {
                        unicas[j++] = item;
                  }
             }
-            //o loop abaixo adiciona os campos de configuração das colunas
-            var colunas=[];
-                for(var i=0, l=unicas.length; i<l; i++){
-                    var aux = unicas[i];
-                    colunas.push({field: unicas[i], 
-                            title:  unicas[i],
-                            show: estado,
-                            filter: undefined
-                        });
-                }
-            return colunas;
+            return unicas;
+        };
+        function columnsSearchFilters(colunas){
+            var len = colunas.length, filters={};
+            for(var i = 0; i < len; i++) {
+                filters[colunas[i]] = '';
+            }
+            return filters;
         };
 
         function nomesPacientes(dados){
@@ -88,7 +98,24 @@ pacientesApp.factory('trataDados', function () {
             }
             return nova;
         };
-        
+        function filterObj(object, keys) {
+            //essa função serve para filtrar a tabela de dados geral(object), retornando uma tabela com apenas as colunas selecionadas (keys)
+            return Object.keys(object)
+                .filter(function (key) {
+                    return keys.indexOf(key) >= 0;
+                })
+                .reduce(function (acc, key) {
+                    acc[key] = object[key];
+                    return acc;
+                }, {});
+        };
+        function tabelaFiltrada(originalData, selected){
+            lista = [];
+            for(var i=0, l=originalData.length; i<l; i++){
+                lista.push(filterObj(originalData[i],selected));
+            };
+            return lista;
+        };        
         function camposValores(obj){
             var d=[], chaves = Object.keys(obj);
             for(var i=0, l=chaves.length; i<l; i++){
@@ -97,19 +124,15 @@ pacientesApp.factory('trataDados', function () {
             return d;
             
         };
-                           
-        function addFilter(lista){
-                for(var i=0, l=lista.length; i<l; i++){
-                    lista[i].filter = {'lista[i].title' : 'text'}
-                    }
-               return lista;     
-        };                  
 
     return {
         getHeaders: chavesToColunas, 
         getPacientes: nomesPacientes,
         getCamposValores: camposValores,
-        insertID: addId
+        insertID: addId,
+        filterObj: filterObj,
+        tabelaFiltrada: tabelaFiltrada,
+        columnsSearchFilters: columnsSearchFilters
     };
 });
 
@@ -157,19 +180,17 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
     $scope.camposColunas[0].show=true; // para deixar o id marcado na tabela de seleção de colunas
     $scope.listaCamposTable = new NgTableParams({count:13}, {counts: [],dataset: $scope.camposColunas}); //parametros da tabela de seleção de colunas
     $scope.selected = ['id'];
-    function slice(object, keys) {
-        //essa função serve para filtrar a tabela de dados geral(object), retornando uma tabela com apenas as colunas selecionadas (keys)
-        return Object.keys(object)
-            .filter(function (key) {
-                return keys.indexOf(key) >= 0;
-            })
-            .reduce(function (acc, key) {
-                acc[key] = object[key];
-                return acc;
-            }, {});
+    $scope.columnFilters = trataDados.columnsSearchFilters($scope.buscaData);
+    $scope.tabelaAtualizada = function(){
+        $scope.newData = trataDados.tabelaFiltrada($scope.buscaData, $scope.selected);
+        $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
+        $scope.columnFilters = trataDados.columnsSearchFilters($scope.selected);
     };
-    $scope.newData = populateNewData([]);
-    $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
+    $scope.cleanSearch = function(){
+        $scope.search = '';
+        for (var prop in $scope.columnFilters) { $scope.columnFilters[prop]=''; };
+    };
+    $scope.tabelaAtualizada();
     $scope.sortReverse = false; 
     $scope.sortColumn = function(col){
         $scope.sortType= col;
@@ -182,24 +203,14 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
             $scope.reverseclass = 'arrow-down';
         };
     };
-    
-
-//    $scope.tabelaFiltrada = new NgTableParams({count:$scope.buscaData.length}, {counts:[], dataset: $scope.newData});
-    function populateNewData(lista){
-        for(var i=0, l=$scope.buscaData.length; i<l; i++){
-            lista.push(slice($scope.buscaData[i],$scope.selected));
-        };
-        return lista;
-    };
     $scope.selectAllColumns = function(selection){
         if (selection == true){
             $scope.newData = $scope.buscaData;
             $scope.columnHeaders = trataDados.getHeaders($scope.buscaData, true);
         }
         else{
-            novaTabela();
+            $scope.tabelaAtualizada();
         }
-        
     };
     $scope.updateSelectedColumns = function(coluna) {
         //Essa função retorna uma nova tabela newData de acordo com as seleções de campos
@@ -207,30 +218,16 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
         if (coluna!==undefined){
             //esse bloco criar a lista de colunas selecionadas
             if(coluna.show){
-                $scope.selected.push(coluna.title);
+                $scope.selected.push(coluna.name);
             }
             else {
-                var index = $scope.selected.indexOf(coluna.title);
+                var index = $scope.selected.indexOf(coluna.name);
                 $scope.selected.splice(index, 1);
             };
-            novaTabela();
+            $scope.tabelaAtualizada();
+             console.log($scope.columnFilters);
         };
-    };
-    
-    function novaTabela(){
-        $scope.newData = [];
-        for(var i=0, l=$scope.buscaData.length; i<l; i++){
-            $scope.newData.push(slice($scope.buscaData[i],$scope.selected));
-        };
-        $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
-
     };
         
-//    $scope.$watch('newData', function(newValue, oldValue) {
-//        //this how we prevent second call
-//        if (newValue!=oldValue){
-//            console.log($scope.selected);
-//        };
-//     });
 }]);
 

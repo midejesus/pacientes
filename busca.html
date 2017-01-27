@@ -4,9 +4,9 @@
     <div class="checkbox"><input type="checkbox" id="checkbox1" ng-model="checkboxAll.value" ng-change="selectAllColumns(checkboxAll.value)"/></div> <label for="checkbox1"><p>Todos os campos</p></label>
     <table ng-table="listaCamposTable" class="table table-condensed" show-filter="true">
         <tr ng-repeat="linha in $data">
-            <td title="'Campos'" filter="{ field: 'text'}" sortable="'field'" ng-cloak >
+            <td title="'Campos'" filter="{ field: 'text'}" sortable="'name'" ng-cloak >
                 <label class="checkbox">
-                    <input type="checkbox" ng-model="linha.show" ng-change="updateSelectedColumns(linha)" ng-disabled="checkboxAll.value"/> <p>{{linha.field}}</p>
+                    <input type="checkbox" ng-model="linha.show" ng-change="updateSelectedColumns(linha)" ng-disabled="checkboxAll.value"/> <p>{{linha.name}}</p>
                 </label>
             </td>
         </tr>
@@ -16,28 +16,28 @@
     <form name="searchForm" novalidate>
             <div class="input-group">
                 <div class="input-group-addon"><span class="glyphicon glyphicon-search"></span></div>
-              <input type="text" class="form-control" placeholder="Termos da busca" name="searchTerm" ng-model="searchTerm" required />
+              <input type="text" class="form-control" placeholder="Termos da busca" name="search" ng-model="search" required />
             </div>
           </form>
 </div>
 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">  
-    <button class="btn btn-primary pull-right" ng-click="searchTerm = ''">Limpar Busca</button>
+    <button class="btn btn-primary pull-right" ng-click="cleanSearch()">Limpar Busca</button>
 </div>
 <br/>
 <div class="col-lg-9 col-md-9 col-sm-6 col-xs-8" style="overflow: auto">  
     <br/>
     <table class="table table-bordered table-striped">
         <thead> 
-            <tr> <th ng-repeat="column in columnHeaders" ng-click="sortColumn(column.title)" class="special" >{{column.title}}
+            <tr> <th ng-repeat="column in columnHeaders" ng-click="sortColumn(column.name)" class="special" >{{column.name}}
                 <span ng-show="sortType == undefined" class="fa fa-sort"></span>
-                <span ng-show="sortType == column.title && !sortReverse" class="fa fa-caret-down"></span>
-                <span ng-show="sortType == column.title && sortReverse" class="fa fa-caret-up"></span>
+                <span ng-show="sortType == column.name && !sortReverse" class="fa fa-caret-down"></span>
+                <span ng-show="sortType == column.name && sortReverse" class="fa fa-caret-up"></span>
                 </th> </tr>
         </thead>
         <tbody>
-            <tr><td ng-repeat="column in columnHeaders"><input type="text" ng-model="searchTerm[column.title]" /></td></tr>
-            <tr ng-repeat="row in newData|filter:searchTerm | orderBy:sortType:sortReverse">
-                <td ng-repeat="column in columnHeaders"> {{row[column.field]}} </td>
+            <tr><td ng-repeat="column in columnHeaders"><input type="text" ng-model="columnFilters[column.name]" class="form-control" /></td></tr>
+            <tr ng-repeat="row in newData|filter: columnFilters | filter:search | orderBy:sortType:sortReverse">
+                <td ng-repeat="column in columnHeaders"> {{row[column.name]}} </td>
             </tr>
         </tbody>
     </table>
