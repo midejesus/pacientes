@@ -39,3 +39,10 @@ table th.special{
 table th.special:hover{
     color:  #5bc0de;
 }
+
+.color-red{
+    color: indianred;
+}
+.color-blue{
+    color: darkblue
+}

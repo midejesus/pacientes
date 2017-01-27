@@ -37,7 +37,7 @@
         <tbody>
             <tr><td ng-repeat="column in columnHeaders"><input type="text" ng-model="columnFilters[column.name]" class="form-control" /></td></tr>
             <tr ng-repeat="row in newData|filter: columnFilters | filter:search | orderBy:sortType:sortReverse">
-                <td ng-repeat="column in columnHeaders"> {{row[column.name]}} </td>
+                <td ng-repeat="column in columnHeaders"> <span ng-class="{'color-blue': row[column.name] === 'Não preenchido', 'color-red':row[column.name] ==='Campo indisponível'}">{{row[column.name]}}</span> </td>
             </tr>
         </tbody>
     </table>

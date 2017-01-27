@@ -98,20 +98,32 @@ pacientesApp.factory('trataDados', function () {
             }
             return nova;
         };
-        function filterObj(object, keys) {
-            //essa função serve para filtrar a tabela de dados geral(object), retornando uma tabela com apenas as colunas selecionadas (keys)
+        function filterObj(object, props) {
+            //essa função serve para um objeto, retornando um objeto com apenas as propriedades informadas (keys)
             return Object.keys(object)
-                .filter(function (key) {
-                    return keys.indexOf(key) >= 0;
+                .filter(function (prop) {//filtra a lista de chaves deixando apenas as que estão na lista props
+                    return props.indexOf(prop) >= 0;
                 })
-                .reduce(function (acc, key) {
-                    acc[key] = object[key];
+                .reduce(function (acc, prop) { //faz a lista virar um objeto
+                    acc[prop] = object[prop];
                     return acc;
                 }, {});
         };
-        function tabelaFiltrada(originalData, selected){
-            lista = [];
-            for(var i=0, l=originalData.length; i<l; i++){
+        function filtraTabela(originalData, selected){
+            var lista = [], l = originalData.length, s = selected.length;
+            for(var i=0; i<l; i++){
+                for(var j=0; j<s;j++){
+                    if(!originalData[i].hasOwnProperty(selected[j])){
+                        originalData[i][selected[j]] = 'Campo indisponível'
+                    };
+                }
+            };
+            originalData.forEach(function (paciente) {
+                Object.keys(paciente).forEach(function (key) {
+                    if (paciente[key] === '' && paciente.hasOwnProperty(key)) paciente[key] = 'Não preenchido';
+                });
+            });
+            for(var i=0; i<l; i++){
                 lista.push(filterObj(originalData[i],selected));
             };
             return lista;
@@ -131,7 +143,7 @@ pacientesApp.factory('trataDados', function () {
         getCamposValores: camposValores,
         insertID: addId,
         filterObj: filterObj,
-        tabelaFiltrada: tabelaFiltrada,
+        filtraTabela: filtraTabela,
         columnsSearchFilters: columnsSearchFilters
     };
 });
@@ -182,7 +194,7 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
     $scope.selected = ['id'];
     $scope.columnFilters = trataDados.columnsSearchFilters($scope.buscaData);
     $scope.tabelaAtualizada = function(){
-        $scope.newData = trataDados.tabelaFiltrada($scope.buscaData, $scope.selected);
+        $scope.newData = trataDados.filtraTabela($scope.buscaData, $scope.selected);
         $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
         $scope.columnFilters = trataDados.columnsSearchFilters($scope.selected);
     };
@@ -212,6 +224,13 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
             $scope.tabelaAtualizada();
         }
     };
+    function size(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
     $scope.updateSelectedColumns = function(coluna) {
         //Essa função retorna uma nova tabela newData de acordo com as seleções de campos
         // $scope.selected só parece sofrer alterações aqui dentro.
@@ -225,9 +244,7 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
                 $scope.selected.splice(index, 1);
             };
             $scope.tabelaAtualizada();
-             console.log($scope.columnFilters);
         };
     };
-        
 }]);
 
