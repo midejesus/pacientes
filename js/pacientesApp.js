@@ -1,4 +1,4 @@
-var pacientesApp = angular.module('pacientesApp', ['ngTable','ngRoute','ui.bootstrap']);
+var pacientesApp = angular.module('pacientesApp', ['ngRoute', 'ui.bootstrap']);
 
 pacientesApp.config(function ($routeProvider,$locationProvider) {
     
@@ -13,7 +13,7 @@ pacientesApp.config(function ($routeProvider,$locationProvider) {
         controller: 'pacientesController'
     })
     
-    .when('/busca/',{
+    .when('/busca',{
         templateUrl: 'busca.html',
         controller: 'buscaController'
     })
@@ -76,10 +76,10 @@ pacientesApp.factory('trataDados', function () {
             var c=[];
             for(var i=0, l=dados.length; i<l; i++){
                 if(dados[i].numeroPaciente!==""){
-                    c.push({id: i, numero: dados[i].numeroPaciente});
+                    c.push({id: i, numeroPaciente: dados[i].numeroPaciente});
                 }
                 else{
-                    c.push({id: i, numero: "Sem número"});
+                    c.push({id: i, numeroPaciente: "Sem número"});
                 }
             }
             return c;
@@ -138,7 +138,8 @@ pacientesApp.factory('trataDados', function () {
         };
 
     return {
-        getHeaders: chavesToColunas, 
+        getHeaders: chavesToColunas,
+        getColunas: getUnicas,
         getPacientes: nomesPacientes,
         getCamposValores: camposValores,
         insertID: addId,
@@ -156,53 +157,29 @@ pacientesApp.controller('alertController',['$scope',function($scope){
     
 }]);
 
-pacientesApp.controller('tabController',['$scope', '$location',function($scope, $location){
-    $scope.tabs = [
-        { title:'Visualizar Cadastrados', icon:'glyphicon glyphicon-th-list', href:"/"},
-        { title:'Realizar Busca', icon:'glyphicon glyphicon-search', href:"/busca/", disabled: true }
-    ];
-    
-    function getHash(data) {
-        window.location.hash = data;
-    };
-    $scope.changeHash = function(data) {
-       $location.path(data);
-    };
-}]);
-
-
-pacientesApp.controller('dataController',['$scope','NgTableParams', 'xmlData','trataDados',function($scope, NgTableParams, xmlData, trataDados){
+pacientesApp.controller('dataController',['$scope', 'xmlData','trataDados', '$location',function($scope, xmlData, trataDados, $location){
     xmlData.getData.then(function(data){
         $scope.xmlData = data;
         $scope.buscaData=trataDados.insertID($scope.xmlData);
         $scope.listaPacientes = trataDados.getPacientes($scope.xmlData);
-        $scope.pacientesTable = new NgTableParams({count:$scope.listaPacientes.length}, {counts: [], dataset: $scope.listaPacientes});
-        $scope.camposColunas = trataDados.getHeaders($scope.buscaData, false);
+        $scope.listby = 'id';
+        $scope.tabs = [
+            { title:'Visualizar Cadastrados', icon:'glyphicon glyphicon-th-list', href:"/"},
+            { title:'Realizar Busca', icon:'glyphicon glyphicon-search', href:"/busca", disabled: true }
+        ];
+        $scope.navClass = function (page) {
+            var currentRoute = $location.path();
+            return page === currentRoute ? 'active' : '';
+        };
     });   
 }]);
 
-pacientesApp.controller('pacientesController',['$scope','NgTableParams', '$routeParams', 'xmlData','trataDados', function($scope, NgTableParams, $routeParams, xmlData, trataDados){  
+pacientesApp.controller('pacientesController',['$scope', '$routeParams', 'xmlData','trataDados', function($scope, $routeParams, xmlData, trataDados){  
     var num = parseInt($routeParams.num);
     $scope.pacienteIndex = $scope.listaPacientes[num];
-    $scope.pacienteAlvo = trataDados.getCamposValores($scope.xmlData[num]);
-    $scope.dadosTable = new NgTableParams({count:25}, {counts: [],dataset: $scope.pacienteAlvo});
-}]);
-
-pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','trataDados', function($scope, NgTableParams, xmlData, trataDados){
-    $scope.camposColunas[0].show=true; // para deixar o id marcado na tabela de seleção de colunas
-    $scope.listaCamposTable = new NgTableParams({count:13}, {counts: [],dataset: $scope.camposColunas}); //parametros da tabela de seleção de colunas
-    $scope.selected = ['id'];
-    $scope.columnFilters = trataDados.columnsSearchFilters($scope.buscaData);
-    $scope.tabelaAtualizada = function(){
-        $scope.newData = trataDados.filtraTabela($scope.buscaData, $scope.selected);
-        $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
-        $scope.columnFilters = trataDados.columnsSearchFilters($scope.selected);
-    };
-    $scope.cleanSearch = function(){
-        $scope.search = '';
-        for (var prop in $scope.columnFilters) { $scope.columnFilters[prop]=''; };
-    };
-    $scope.tabelaAtualizada();
+    // ===== Controles de Ordenação (sort) - Tabela com todos os pacientes (listaPAacientes) ====
+    $scope.pacientesFilters = {campo:'', valor:''};
+    $scope.columnHeaders = [{name:'Campos'},{name:'Respostas'}] ;
     $scope.sortReverse = false; 
     $scope.sortColumn = function(col){
         $scope.sortType= col;
@@ -215,27 +192,78 @@ pacientesApp.controller('buscaController',['$scope','NgTableParams', 'xmlData','
             $scope.reverseclass = 'arrow-down';
         };
     };
+    $scope.pacienteAlvo = trataDados.getCamposValores($scope.xmlData[num]);
+    // ===== Paginação - Tabela de Paciente (pacienteAlvo) - Campos/Valores =====
+    $scope.totalItems = $scope.pacienteAlvo.length;
+    $scope.viewby = 15;
+    $scope.currentPage = 1;  
+    $scope.numPerPage = $scope.viewby;
+    $scope.maxSize = 10;
+    $scope.setItemsPerPage = function(num) {
+        $scope.numPerPage = num;
+        $scope.currentPage = 1; //reset to first paghe
+    };
+}]);
+
+pacientesApp.controller('buscaController',['$scope','xmlData','trataDados', function($scope, xmlData, trataDados){
+    // ===== Inicialização da tabela camposColunas com seleção de id =====
+    $scope.camposColunas = trataDados.getHeaders($scope.buscaData, false);
+    $scope.camposColunas[0].show=true; 
+    // ===== Paginação - Tabela de Campos =====
+    $scope.totalItems = $scope.camposColunas.length;
+    $scope.viewby = 10;
+    $scope.currentPage = 1;  
+    $scope.numPerPage = $scope.viewby;
+    $scope.maxSize = 4;
+    $scope.setItemsPerPage = function(num) {
+        $scope.numPerPage = num;
+        $scope.currentPage = 1; //reset to first paghe
+    };
+    // ===== Ordenação (sort) da Tabela Campos =====
+    $scope.sortReverseCampos = false;
+    $scope.sortCampos = function(){
+        $scope.sortReverseCampos = !$scope.sortReverseCampos;
+        $scope.sortingCampos = true ;
+    };
+    // ===== Inicialização da Tabela de Resultados =====
+    $scope.selected = ['id'];
+    $scope.tabelaAtualizada = function(){
+        $scope.newData = trataDados.filtraTabela($scope.buscaData, $scope.selected);
+        $scope.columnHeaders = trataDados.getHeaders($scope.newData, true);
+        $scope.columnFilters = trataDados.columnsSearchFilters($scope.selected);
+    };
+    $scope.tabelaAtualizada();
+    // ===== Ordenação (sort) da Tabela de Resultados =====
+    $scope.sortReverse = false; 
+    $scope.sortColumn = function(col){
+        $scope.sortType= col;
+        if($scope.sortReverse){
+            $scope.sortReverse = false;
+        }
+        else{
+            $scope.sortReverse = true;
+            $scope.reverseclass = 'arrow-down';
+        };
+    };
+    // ===== Função para limpar filtros da Tabela de Resultados =====
+    $scope.cleanSearch = function(){
+        $scope.search = '';
+        for (var prop in $scope.columnFilters) { $scope.columnFilters[prop]=''; };
+    };
+    // ===== Seleção de Todos os Campos para a Tabela de Resultados =====
     $scope.selectAllColumns = function(selection){
-        if (selection == true){
-            $scope.newData = $scope.buscaData;
+        if (selection){
+            $scope.newData = trataDados.filtraTabela($scope.buscaData,trataDados.getColunas($scope.buscaData));
             $scope.columnHeaders = trataDados.getHeaders($scope.buscaData, true);
         }
         else{
             $scope.tabelaAtualizada();
         }
     };
-    function size(obj) {
-    var size = 0, key;
-    for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
-    }
-    return size;
-};
+    // ===== Atualização da Coluna Resultados com base na seleção de campos
     $scope.updateSelectedColumns = function(coluna) {
         //Essa função retorna uma nova tabela newData de acordo com as seleções de campos
-        // $scope.selected só parece sofrer alterações aqui dentro.
-        if (coluna!==undefined){
-            //esse bloco criar a lista de colunas selecionadas
+        if (coluna!==undefined){//esse bloco criar a lista de colunas selecionadas
             if(coluna.show){
                 $scope.selected.push(coluna.name);
             }

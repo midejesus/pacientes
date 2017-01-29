@@ -46,3 +46,6 @@ table th.special:hover{
 .color-blue{
     color: darkblue
 }
+table th.sortable{
+    background-color:rgba(141,192,219,.25);
+}

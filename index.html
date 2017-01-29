@@ -9,16 +9,13 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="css/pacientes.css">
-        <link rel="stylesheet" href="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
         <script src="js/angular.min.js"></script>
         <script src="js/angular-route.min.js"></script>
-        <script src="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.js"></script>
-        <script src="js/ui-bootstrap-tpls-2.3.1.min.js"></script>
         <script src="js/xml2json.min.js"></script>
         <script src="js/pacientesApp.js"></script>
         <script type="text/ng-template" id="alert.html"><div ng-transclude></div></script>
-        <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+        <script src="js/ui-bootstrap-tpls-2.5.0.min.js"></script>
     </head>
     <body>
         <div class="top-wrapper">
@@ -34,6 +31,7 @@
              <hr class="intro-divider">
         </div>
         <div class="container">
+<!--
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
                     <div ng-controller="alertController">
@@ -44,25 +42,19 @@
                     </div>
                 </div>
             </div>
+-->
         </div>
         <div class="container">
             <div class="row">
-               <div ng-controller="tabController">
+               <div ng-controller="dataController">
                 <div class="panel with-nav-tabs panel-info">
                     <div class="panel-heading">
-                       <uib-tabset active="active">
-<!--                        <uib-tab ng-repeat="tab in tabs" active="tab.active" >-->
-                        <uib-tab ng-repeat="tab in tabs" active="tab.active" select="changeHash(tab.href)" >
-                           <uib-tab-heading ng-cloak>
-                              <i class="{{tab.icon}}"></i> {{tab.title}}
-                            </uib-tab-heading>
-                        </uib-tab>
-                      </uib-tabset>
+                        <ul class="nav nav-tabs">
+                            <li ng-repeat="tab in tabs" ng-class="navClass(tab.href)"><a ng-href="#{{tab.href}}"><i class="{{tab.icon}}"></i> {{tab.title}}</a></li>
+                        </ul>
                     </div>
                     <div class="panel-body">
-                        <div ng-Controller="dataController">
                             <div ng-view></div>
-                        </div>
                     </div>
                 </div>
             </div>

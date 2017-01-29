@@ -2,15 +2,28 @@
     <p>Selecione os campos de interesse para exibição na tabela.</p>
     
     <div class="checkbox"><input type="checkbox" id="checkbox1" ng-model="checkboxAll.value" ng-change="selectAllColumns(checkboxAll.value)"/></div> <label for="checkbox1"><p>Todos os campos</p></label>
-    <table ng-table="listaCamposTable" class="table table-condensed" show-filter="true">
-        <tr ng-repeat="linha in $data">
-            <td title="'Campos'" filter="{ field: 'text'}" sortable="'name'" ng-cloak >
+    <table class="table table-condensed">
+        <thead>
+            <th class="text-center" ng-click="sortCampos()" class="special" ng-class="{'sortable': sortingCampos}" >Campos
+                <span ng-show="sortingCampos == undefined" class="fa fa-sort"></span>
+                <span ng-show="sortingCampos && !sortReverseCampos" class="fa fa-caret-down"></span>
+                <span ng-show="sortingCampos && sortReverseCampos" class="fa fa-caret-up"></span>
+            </th>
+        </thead>
+        <tbody>
+        <tr><td><input type="text" ng-model="camposSearch" class="form-control" /></td></tr>
+        <tr ng-repeat="linha in camposColunas.slice(((currentPage-1)*numPerPage), ((currentPage)*numPerPage)) | filter:camposSearch | orderBy:sortingCampos:sortReverseCampos">
+            <td ng-cloak >
                 <label class="checkbox">
                     <input type="checkbox" ng-model="linha.show" ng-change="updateSelectedColumns(linha)" ng-disabled="checkboxAll.value"/> <p>{{linha.name}}</p>
                 </label>
             </td>
         </tr>
+        </tbody>
     </table>
+    Visualizar <select ng-model="viewby" ng-change="setItemsPerPage(viewby)"><option>10</option><option>15</option><option>20</option><option>30</option><option>40</option><option>50</option></select> campos por vez.
+
+    <ul uib-pagination boundary-link-numbers="true" total-items="totalItems" ng-model="currentPage" max-size="maxSize" items-per-page="numPerPage" rotate="false" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></ul>
 </div>
 <div class="col-lg-7 col-md-7 col-sm-4 col-xs-6">  
     <form name="searchForm" novalidate>
@@ -28,7 +41,7 @@
     <br/>
     <table class="table table-bordered table-striped">
         <thead> 
-            <tr> <th ng-repeat="column in columnHeaders" ng-click="sortColumn(column.name)" class="special" >{{column.name}}
+            <tr> <th ng-repeat="column in columnHeaders" ng-click="sortColumn(column.name)" class="special" ng-class="{'sortable': sortType == column.name}" >{{column.name}}
                 <span ng-show="sortType == undefined" class="fa fa-sort"></span>
                 <span ng-show="sortType == column.name && !sortReverse" class="fa fa-caret-down"></span>
                 <span ng-show="sortType == column.name && sortReverse" class="fa fa-caret-up"></span>
@@ -37,7 +50,10 @@
         <tbody>
             <tr><td ng-repeat="column in columnHeaders"><input type="text" ng-model="columnFilters[column.name]" class="form-control" /></td></tr>
             <tr ng-repeat="row in newData|filter: columnFilters | filter:search | orderBy:sortType:sortReverse">
-                <td ng-repeat="column in columnHeaders"> <span ng-class="{'color-blue': row[column.name] === 'Não preenchido', 'color-red':row[column.name] ==='Campo indisponível'}">{{row[column.name]}}</span> </td>
+                <td ng-repeat="column in columnHeaders"> 
+                    <a ng-href="#paciente/{{row[column.name]}}" ng-if="column.name==='id'">{{row[column.name]}}</a>
+                    <span ng-if="column.name!=='id'" ng-class="{'color-blue': row[column.name] === 'Não preenchido', 'color-red':row[column.name] ==='Campo indisponível'}"> {{row[column.name]}} </span>
+                 </td>
             </tr>
         </tbody>
     </table>
